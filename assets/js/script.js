@@ -24,6 +24,14 @@ function saveData(lastTick, visitCount, totalTicks) {
     window.localStorage.setItem("tick-data", JSON.stringify(saveData));
 }
 
+function saveData(obj) {
+    const oldData = JSON.parse(window.localStorage.getItem("tick-data"));
+    console.log(`Previous tick ${DateTime.fromISO(oldData.lastTick)},
+        new tick ${latestTick()}`);
+
+    window.localStorage.setItem("tick-data",JSON.stringify(obj));
+}
+
 const data = JSON.parse(window.localStorage.getItem("tick-data"));
 let lastTick = DateTime.fromISO(data.lastTick);
 lastTick = lastTick.minus(Duration.fromObject({ seconds: lastTick.second % 20 }));
@@ -47,7 +55,8 @@ lastTickEl.textContent += `  Since then, ${ticksSince} ticks have elapsed.
   Since the beginning, you have visited ${data.visitCount} times and lived through ${data.totalTicks + ticksSince} ticks.`;
 
 // Update save data
-saveData(latestTick(), ++data.visitCount, data.totalTicks + ticksSince);
+// saveData(latestTick(), ++data.visitCount, data.totalTicks + ticksSince);
+saveData({ lastTick: latestTick(), visitCount: ++data.visitCount, totalTicks: data.totalTicks + ticksSince });
 
 
 // // data
