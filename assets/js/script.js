@@ -10,7 +10,7 @@ const mainEl = document.getElementById("main");
 
 // New visitor data
 if (!window.localStorage.getItem("tick-data")) {
-    saveData(latestTick(), 1, 0);
+    newSaveData(latestTick(), 1, 0);
 }
 
 // Find the last third-of-a-minute
@@ -18,7 +18,7 @@ function latestTick() {
     return now.minus(Duration.fromObject({ seconds: now.second % 20 }));
 }
 
-function saveData(lastTick, visitCount, totalTicks) {
+function newSaveData(lastTick, visitCount, totalTicks) {
     let saveData = { lastTick: lastTick, visitCount: visitCount, totalTicks: totalTicks };
 
     window.localStorage.setItem("tick-data", JSON.stringify(saveData));
