@@ -5,6 +5,44 @@ const now = DateTime.now();
 // config
 const tick = Duration.fromObject({ seconds: 20 });
 
+const villagerData = {
+    farmer: {
+        class: "farmer",
+        type: "gatherer",
+        resource: "food",
+        hold: 10,
+        to_market: 0,
+        daily_food: 1
+    },
+    woodcutter: {
+        class: "woodcutter",
+        type: "gatherer",
+        resource: "wood",
+        hold: 10,
+        to_market: 4,
+        daily_food: 1
+    },
+    quarrier: {
+        class: "quarrier",
+        type: "gatherer",
+        resource: "stone",
+        hold: 5,
+        to_market: 2,
+        daily_food: 1
+    }
+}
+const resourceData = {
+    food: {
+
+    },
+    wood: {
+
+    },
+    stone: {
+
+    }
+}
+
 // DOM
 const mainEl = document.getElementById("main");
 
@@ -58,82 +96,27 @@ lastTickEl.textContent += `  Since then, ${ticksSince} ticks have elapsed.
 // saveData(latestTick(), ++data.visitCount, data.totalTicks + ticksSince);
 saveData({ lastTick: latestTick(), visitCount: ++data.visitCount, totalTicks: data.totalTicks + ticksSince });
 
+mainEl.appendChild(villagerCard(villagerData.farmer));
+mainEl.appendChild(villagerCard(villagerData.farmer));
 
-// // data
-// if (!window.localStorage.getItem("data")) {
-//     let lastVisit = DateTime.fromISO(window.localStorage.getItem("lastVisit"));
-//     let visitCount = window.localStorage.getItem("visits");
+function villagerCard(villager) {
+    let cardEl = document.createElement("div");
+    cardEl.classList = "card w-25 m-2";
+    cardEl.style.display = "inline-block";
 
-//     let data = { time: { lastVisit: lastVisit },
-//         stats: { visitCount: visitCount } };
+    cardEl.innerHTML = `
+        <div class="card-header">
+            <i class="bi bi-person"></i> Angelo
+        </div>
+        <div class="card-body">
+            <i class="bi bi-cart"></i> Wood: 9 / 10
+        </div>
+        <div class="card-footer">
+            ${villager.class}
+        </div>`;
 
-//     window.localStorage.setItem("data", JSON.stringify(data));
-// }
-
-// const data = JSON.parse(window.localStorage.getItem("data"));
-
-// const lastVisit = DateTime.fromISO(window.localStorage.getItem("lastVisit"));
-// window.localStorage.setItem("lastVisit", now);
-// let totalVisits = window.localStorage.getItem("visits") ? window.localStorage.getItem("visits") : 0;
-// window.localStorage.setItem("visits", ++totalVisits);
-
-// const timeSince = luxon.Interval.fromDateTimes(lastVisit, now);
-
-// function lastVisitEstimate(timeSince) {
-//     let lastVisitEl = document.createElement("p");
-//     lastVisitEl.className = "text-light";
-
-//     let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
-//     let time = lastVisit.toLocaleString(DateTime.TIME_SIMPLE);
-    
-//     lastVisitEl.textContent = `Your last visit was on ${date} at ${time}, ${lastVisit.toRelative()}/${lastVisit.toRelativeCalendar()}.`;
-
-//     mainEl.append(lastVisitEl);
-
-//     let estimate = `a little while`;
-
-//     if (timeSince.length("hours") > 2) {
-//         estimate = `about ${Math.floor(timeSince.length("hours"))} hours`;
-//     } else if (timeSince.length("minutes") > 8) {
-//         estimate = `about ${Math.floor(timeSince.length("minutes"))} minutes`;
-//     } else if (timeSince.length("minutes") > 2) {
-//         estimate = `a few minutes`;
-//     } else if (timeSince.length("seconds") > 25) {
-//         estimate = `${Math.floor(timeSince.length("seconds"))} seconds`;
-//     } else {
-//         estimate = `not very much time at all`;
-//     }
-
-//     let timeSinceEl = document.createElement("p");
-//     timeSinceEl.className = "text-light";
-
-//     timeSinceEl.textContent = `It has been ${estimate} since your last visit.`;
-
-//     mainEl.append(timeSinceEl);
-
-//     let ticksSince = timeSince.length("seconds") / 20;
-//     console.log(`${timeSince.length("seconds")} ${ticksSince} `);
-
-//     let tickSinceEl = document.createElement("p");
-//     tickSinceEl.className = "text-light";
-
-//     tickSinceEl.textContent = `The current tick time is ${tick.toHuman()}.  The number of complete ticks since last visit is ${timeSince.splitBy(tick).length -1}.`
-
-//     mainEl.append(tickSinceEl);
-
-//     let ticksActive = 0;
-//     let ticksActiveEl = document.createElement("p");
-//     ticksActiveEl.className = "text-light";
-
-//     mainEl.append(ticksActiveEl);
-
-//     setInterval(function() {
-//         ticksActive++;
-//         ticksActiveEl.textContent = `The number of ticks that have passed since you have been here is ${ticksActive}.`
-//     }, 20000);
-// }
-
-// lastVisitEstimate(timeSince);
+    return cardEl;
+}
 
 // function resourceCard(resource, qty, max) {
 //     let cardEl = document.createElement("div");
