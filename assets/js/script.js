@@ -99,7 +99,7 @@ let interval = setInterval(function() {
     let timeSince = luxon.Interval.fromDateTimes(lastTick, now);
     let ticksSince = Math.floor(timeSince.length("seconds") / 20);
 
-    saveData("tick-data", { lastTick: latestTick(), totalTicks: tickData.totalTicks + ticksSince });
+    saveData("tick-data", { lastTick: latestTick() });
 
     statusEl.textContent = `Active last tick:  ${date} at ${time}, ${relative}`;
 }, 1000)
