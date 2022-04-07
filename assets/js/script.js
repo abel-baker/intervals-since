@@ -38,8 +38,7 @@ if (!window.localStorage.getItem("tick-data")) {
 
 // Find the last third-of-a-minute
 function latestTick() {
-    let now = DateTime.now();
-    return now.minus(Duration.fromObject({ seconds: now.second % 20 }));
+    return DateTime.now().minus(Duration.fromObject({ seconds: now.second % 20 }));
 }
 
 function newSaveData(lastTick, visitCount, totalTicks) {
@@ -58,51 +57,56 @@ function saveData(cat, obj) {
 }
 
 const tickData = JSON.parse(window.localStorage.getItem("tick-data"));
+
+// Last visit is the DateTime at the start of the last visit (or the lastest tick, if there isn't one)
+let lastVisit = tickData.lastVisit? DateTime.fromISO(tickData.lastVisit) : latestTick(); // DateTime
+
 let lastTick = DateTime.fromISO(tickData.lastTick);
 lastTick = lastTick.minus(Duration.fromObject({ seconds: lastTick.second % 20 }));
 
 // Readable stuff
-let date = lastTick.toLocaleString(DateTime.DATE_HUGE);
-let time = lastTick.toLocaleString(DateTime.TIME_WITH_SECONDS);
-let relative = lastTick.toRelative();
+let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
+let time = lastVisit.toLocaleString(DateTime.TIME_WITH_SECONDS);
+let relative = lastVisit.toRelative();
 
-const lastTickEl = document.createElement("p");
-lastTickEl.className = "text-light";
-
-mainEl.appendChild(lastTickEl);
-lastTickEl.textContent = `Your last recorded tick was on ${date} at ${time}, ${relative}.`;
+const lastVisitEl = document.createElement("p");
+mainEl.appendChild(lastVisitEl);
+lastVisitEl.className = "text-light";
+lastVisitEl.textContent = `Your last recorded tick was on ${date} at ${time}, ${relative}.`;
 
 // Get the number of tick-length intervals of time from now to the last recorded tick (data.lastTick)
-const timeSince = luxon.Interval.fromDateTimes(lastTick, now);
-let ticksSince = Math.floor(timeSince.length("seconds") / 20);
+const timeSinceLastVisit = luxon.Interval.fromDateTimes(lastVisit, now);
+const ticksSinceLastVisit = timeSinceLastVisit.splitBy(tick).length - 1;
+console.log(timeSinceLastVisit.splitBy(tick));
 
-lastTickEl.textContent += `  Since then, ${ticksSince} ticks have elapsed.
-  Since the beginning, you have visited ${tickData.visitCount} times and lived through ${tickData.totalTicks + ticksSince} ticks.`;
+saveData("tick-data", { lastVisit: now });
 
-// Update/save time data
-saveData("tick-data", { lastTick: latestTick(), visitCount: ++tickData.visitCount, totalTicks: tickData.totalTicks + ticksSince });
+// lastVisitEl.textContent += `  Since then, ${ticksSinceLastVisit} ticks have elapsed.
+//   Since the beginning, you have visited ${tickData.visitCount} times and lived through ${tickData.totalTicks + ticksSinceLastVisit} ticks.`;
 
-saveData("resource-data", { woodCount: 4 });
+// // Update/save time data
+// saveData("tick-data", { lastTick: latestTick(), visitCount: ++tickData.visitCount, totalTicks: tickData.totalTicks + ticksSinceLastVisit });
+// saveData("resource-data", { woodCount: 4 });
 
-const statusEl = document.createElement("p");
-statusEl.className = "text-light";
-mainEl.appendChild(statusEl);
+// const statusEl = document.createElement("p");
+// statusEl.className = "text-light";
+// mainEl.appendChild(statusEl);
 
-let interval = setInterval(function() {
-    let tickData = JSON.parse(window.localStorage.getItem("tick-data"));
-    let lastTick = DateTime.fromISO(tickData.lastTick);
+// let interval = setInterval(function() {
+//     let tickData = JSON.parse(window.localStorage.getItem("tick-data"));
+//     let lastTick = DateTime.fromISO(tickData.lastTick);
     
-    let date = lastTick.toLocaleString(DateTime.DATE_HUGE);
-    let time = lastTick.toLocaleString(DateTime.TIME_WITH_SECONDS);
-    let relative = lastTick.toRelative();
+//     let date = lastTick.toLocaleString(DateTime.DATE_HUGE);
+//     let time = lastTick.toLocaleString(DateTime.TIME_WITH_SECONDS);
+//     let relative = lastTick.toRelative();
 
-    let timeSince = luxon.Interval.fromDateTimes(lastTick, now);
-    let ticksSince = Math.floor(timeSince.length("seconds") / 20);
+//     let timeSince = luxon.Interval.fromDateTimes(lastTick, now);
+//     let ticksSince = Math.floor(timeSince.length("seconds") / 20);
 
-    saveData("tick-data", { lastTick: latestTick() });
+//     saveData("tick-data", { lastTick: latestTick() });
 
-    statusEl.textContent = `Active last tick:  ${date} at ${time}, ${relative}`;
-}, 1000)
+//     statusEl.textContent = `Active last tick:  ${date} at ${time}, ${relative}`;
+// }, 1000)
 
 // function resourceCard(resource, qty, max) {
 //     let cardEl = document.createElement("div");
