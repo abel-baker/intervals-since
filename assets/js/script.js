@@ -2,29 +2,6 @@ const DateTime = luxon.DateTime;
 const Duration = luxon.Duration;
 let now = DateTime.now();
 
-const resources = {
-    wood: {
-        weight: 0.1,
-        value: 1
-    },
-    stone: {
-        weight: 0.8,
-        value: 2
-    }
-}
-const professions = {
-    woodcutter: {
-        resource: "wood",
-        production: 1,
-        base_carry: 10
-    },
-    stonecutter: {
-        resource: "stone",
-        production: 1,
-        base_carry: 4
-    }
-}
-
 // config
 const tick = Duration.fromObject({ seconds: 20 });
 
@@ -73,18 +50,13 @@ const mainEl = document.getElementById("main");
 if (!window.localStorage.getItem("tick-data")) {
     newSaveData(latestTick(), 1, 0);
 }
-
-// Find the last third-of-a-minute
-function latestTick() {
-    return DateTime.now().minus(Duration.fromObject({ seconds: now.second % 20 }));
-}
-
 function newSaveData(lastTick, visitCount, totalTicks) {
     let saveData = { lastTick: lastTick, visitCount: visitCount, totalTicks: totalTicks,
         firstVisit: now };
 
     window.localStorage.setItem("tick-data", JSON.stringify(saveData));
 }
+
 // Save data object to the data category provided
 function saveData(cat, obj) {
     const oldData = JSON.parse(window.localStorage.getItem(cat));
@@ -96,13 +68,16 @@ function saveData(cat, obj) {
     window.localStorage.setItem(cat, JSON.stringify(merged));
 }
 
+// Find the latest third-of-a-minute
+function latestTick() {
+    return DateTime.now().minus(Duration.fromObject({ seconds: now.second % 20 })); // DateTime
+}
+
 const tickData = JSON.parse(window.localStorage.getItem("tick-data"));
 
 // Last visit is the DateTime at the start of the last visit (or the lastest tick, if there isn't one)
 let lastVisit = tickData.lastVisit? DateTime.fromISO(tickData.lastVisit) : latestTick(); // DateTime
-
 let lastTick = DateTime.fromISO(tickData.lastTick);
-lastTick = lastTick.minus(Duration.fromObject({ seconds: lastTick.second % 20 }));
 
 // Readable stuff
 let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
@@ -120,13 +95,16 @@ const ticksSinceLastVisit = timeSinceLastVisit.splitBy(tick).length - 1;
 
 lastVisitEl.textContent += `  Since then, ${ticksSinceLastVisit} ticks have elapsed.`;
 
-saveData("tick-data", { lastVisit: now });
+// Increment number of visits and set the last visit
+saveData("tick-data", { lastVisit: now, visitCount: ++tickData.visitCount });
 
 let firstVisit = DateTime.fromISO(tickData.firstVisit);
 
 const timeSinceFirstVisit = luxon.Interval.fromDateTimes(firstVisit, now);
 const ticksSinceFirstVisit = timeSinceFirstVisit.splitBy(tick).length - 1;
-lastVisitEl.textContent += `  You've been here about ${firstVisit.toRelative()} altogether.  That's ${ticksSinceFirstVisit} ticks or so.`;
+lastVisitEl.textContent += `  Your first visit was about ${firstVisit.toRelative()}.  That's ${ticksSinceFirstVisit} ticks or so, over ${tickData.visitCount} visits.`;
+
+
 
 
 
@@ -135,7 +113,7 @@ mainEl.appendChild(villagerCard(villagerData.farmer));
 
 function villagerCard(villager) {
     let cardEl = document.createElement("div");
-    cardEl.classList = "card w-25 m-2";
+    cardEl.classList = "card w-10 m-2";
     cardEl.style.display = "inline-block";
 
     cardEl.innerHTML = `
