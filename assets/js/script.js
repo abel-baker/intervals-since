@@ -128,53 +128,26 @@ const timeSinceFirstVisit = luxon.Interval.fromDateTimes(firstVisit, now);
 const ticksSinceFirstVisit = timeSinceFirstVisit.splitBy(tick).length - 1;
 lastVisitEl.textContent += `  You've been here about ${firstVisit.toRelative()} altogether.  That's ${ticksSinceFirstVisit} ticks or so.`;
 
-// lastVisitEl.textContent += `  Since then, ${ticksSinceLastVisit} ticks have elapsed.
-//   Since the beginning, you have visited ${tickData.visitCount} times and lived through ${tickData.totalTicks + ticksSinceLastVisit} ticks.`;
 
-// // Update/save time data
-// saveData("tick-data", { lastTick: latestTick(), visitCount: ++tickData.visitCount, totalTicks: tickData.totalTicks + ticksSinceLastVisit });
-// saveData("resource-data", { woodCount: 4 });
 
-// const statusEl = document.createElement("p");
-// statusEl.className = "text-light";
-// mainEl.appendChild(statusEl);
+mainEl.appendChild(villagerCard(villagerData.farmer));
+mainEl.appendChild(villagerCard(villagerData.farmer));
 
-// let interval = setInterval(function() {
-//     let tickData = JSON.parse(window.localStorage.getItem("tick-data"));
-//     let lastTick = DateTime.fromISO(tickData.lastTick);
-    
-//     let date = lastTick.toLocaleString(DateTime.DATE_HUGE);
-//     let time = lastTick.toLocaleString(DateTime.TIME_WITH_SECONDS);
-//     let relative = lastTick.toRelative();
+function villagerCard(villager) {
+    let cardEl = document.createElement("div");
+    cardEl.classList = "card w-25 m-2";
+    cardEl.style.display = "inline-block";
 
-//     let timeSince = luxon.Interval.fromDateTimes(lastTick, now);
-//     let ticksSince = Math.floor(timeSince.length("seconds") / 20);
+    cardEl.innerHTML = `
+        <div class="card-header"> 
+            <i class="bi bi-person-circle"></i> Angelo
+        </div>
+        <div class="card-body">
+            <i class="bi bi-boxes"></i> Wood: 9 / 10
+        </div>
+        <div class="card-footer">
+            ${villager.class}
+        </div>`;
 
-//     saveData("tick-data", { lastTick: latestTick() });
-
-//     statusEl.textContent = `Active last tick:  ${date} at ${time}, ${relative}`;
-// }, 1000)
-
-// function resourceCard(resource, qty, max) {
-//     let cardEl = document.createElement("div");
-//     cardEl.classList = "card m-4";
-//     cardEl.style = "width: 12rem;";
-
-//     let cardBodyEl = document.createElement("div");
-//     cardBodyEl.className = "card-body p-0 px-3";
-
-//     let cardHeading = document.createElement("h5");
-//     cardHeading.className = "card-title";
-//     cardHeading.textContent = resource;
-
-//     let cardText = document.createElement("p");
-//     cardText.className = "card-text";
-//     cardText.textContent = `${qty} / ${max}`;
-
-//     cardEl.append(cardBodyEl);
-//     cardBodyEl.append(cardHeading, cardText);
-
-//     return cardEl;
-// }
-
-// mainEl.append(resourceCard("Wood", 2, 5));
+    return cardEl;
+}
