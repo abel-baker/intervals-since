@@ -1,6 +1,29 @@
 const DateTime = luxon.DateTime;
 const Duration = luxon.Duration;
-const now = DateTime.now();
+let now = DateTime.now();
+
+const resources = {
+    wood: {
+        weight: 0.1,
+        value: 1
+    },
+    stone: {
+        weight: 0.8,
+        value: 2
+    }
+}
+const professions = {
+    woodcutter: {
+        resource: "wood",
+        production: 1,
+        base_carry: 10
+    },
+    stonecutter: {
+        resource: "stone",
+        production: 1,
+        base_carry: 4
+    }
+}
 
 // config
 const tick = Duration.fromObject({ seconds: 20 });
@@ -15,6 +38,7 @@ if (!window.localStorage.getItem("tick-data")) {
 
 // Find the last third-of-a-minute
 function latestTick() {
+    let now = DateTime.now();
     return now.minus(Duration.fromObject({ seconds: now.second % 20 }));
 }
 
@@ -23,17 +47,18 @@ function newSaveData(lastTick, visitCount, totalTicks) {
 
     window.localStorage.setItem("tick-data", JSON.stringify(saveData));
 }
+// Save data object to the data category provided
+function saveData(cat, obj) {
+    const oldData = JSON.parse(window.localStorage.getItem(cat));
 
-function saveData(obj) {
-    const oldData = JSON.parse(window.localStorage.getItem("tick-data"));
-    console.log(`Previous tick ${DateTime.fromISO(oldData.lastTick)},
-        new tick ${latestTick()}`);
+    // Merge with current data so not all properties need to be added every time to the argument object
+    let merged = {...oldData, ...obj};
 
-    window.localStorage.setItem("tick-data",JSON.stringify(obj));
+    window.localStorage.setItem(cat, JSON.stringify(merged));
 }
 
-const data = JSON.parse(window.localStorage.getItem("tick-data"));
-let lastTick = DateTime.fromISO(data.lastTick);
+const tickData = JSON.parse(window.localStorage.getItem("tick-data"));
+let lastTick = DateTime.fromISO(tickData.lastTick);
 lastTick = lastTick.minus(Duration.fromObject({ seconds: lastTick.second % 20 }));
 
 // Readable stuff
@@ -52,88 +77,32 @@ const timeSince = luxon.Interval.fromDateTimes(lastTick, now);
 let ticksSince = Math.floor(timeSince.length("seconds") / 20);
 
 lastTickEl.textContent += `  Since then, ${ticksSince} ticks have elapsed.
-  Since the beginning, you have visited ${data.visitCount} times and lived through ${data.totalTicks + ticksSince} ticks.`;
+  Since the beginning, you have visited ${tickData.visitCount} times and lived through ${tickData.totalTicks + ticksSince} ticks.`;
 
-// Update save data
-// saveData(latestTick(), ++data.visitCount, data.totalTicks + ticksSince);
-saveData({ lastTick: latestTick(), visitCount: ++data.visitCount, totalTicks: data.totalTicks + ticksSince });
+// Update/save time data
+saveData("tick-data", { lastTick: latestTick(), visitCount: ++tickData.visitCount, totalTicks: tickData.totalTicks + ticksSince });
 
+saveData("resource-data", { woodCount: 4 });
 
-// // data
-// if (!window.localStorage.getItem("data")) {
-//     let lastVisit = DateTime.fromISO(window.localStorage.getItem("lastVisit"));
-//     let visitCount = window.localStorage.getItem("visits");
+const statusEl = document.createElement("p");
+statusEl.className = "text-light";
+mainEl.appendChild(statusEl);
 
-//     let data = { time: { lastVisit: lastVisit },
-//         stats: { visitCount: visitCount } };
-
-//     window.localStorage.setItem("data", JSON.stringify(data));
-// }
-
-// const data = JSON.parse(window.localStorage.getItem("data"));
-
-// const lastVisit = DateTime.fromISO(window.localStorage.getItem("lastVisit"));
-// window.localStorage.setItem("lastVisit", now);
-// let totalVisits = window.localStorage.getItem("visits") ? window.localStorage.getItem("visits") : 0;
-// window.localStorage.setItem("visits", ++totalVisits);
-
-// const timeSince = luxon.Interval.fromDateTimes(lastVisit, now);
-
-// function lastVisitEstimate(timeSince) {
-//     let lastVisitEl = document.createElement("p");
-//     lastVisitEl.className = "text-light";
-
-//     let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
-//     let time = lastVisit.toLocaleString(DateTime.TIME_SIMPLE);
+let interval = setInterval(function() {
+    let tickData = JSON.parse(window.localStorage.getItem("tick-data"));
+    let lastTick = DateTime.fromISO(tickData.lastTick);
     
-//     lastVisitEl.textContent = `Your last visit was on ${date} at ${time}, ${lastVisit.toRelative()}/${lastVisit.toRelativeCalendar()}.`;
+    let date = lastTick.toLocaleString(DateTime.DATE_HUGE);
+    let time = lastTick.toLocaleString(DateTime.TIME_WITH_SECONDS);
+    let relative = lastTick.toRelative();
 
-//     mainEl.append(lastVisitEl);
+    let timeSince = luxon.Interval.fromDateTimes(lastTick, now);
+    let ticksSince = Math.floor(timeSince.length("seconds") / 20);
 
-//     let estimate = `a little while`;
+    saveData("tick-data", { lastTick: latestTick(), totalTicks: tickData.totalTicks + ticksSince });
 
-//     if (timeSince.length("hours") > 2) {
-//         estimate = `about ${Math.floor(timeSince.length("hours"))} hours`;
-//     } else if (timeSince.length("minutes") > 8) {
-//         estimate = `about ${Math.floor(timeSince.length("minutes"))} minutes`;
-//     } else if (timeSince.length("minutes") > 2) {
-//         estimate = `a few minutes`;
-//     } else if (timeSince.length("seconds") > 25) {
-//         estimate = `${Math.floor(timeSince.length("seconds"))} seconds`;
-//     } else {
-//         estimate = `not very much time at all`;
-//     }
-
-//     let timeSinceEl = document.createElement("p");
-//     timeSinceEl.className = "text-light";
-
-//     timeSinceEl.textContent = `It has been ${estimate} since your last visit.`;
-
-//     mainEl.append(timeSinceEl);
-
-//     let ticksSince = timeSince.length("seconds") / 20;
-//     console.log(`${timeSince.length("seconds")} ${ticksSince} `);
-
-//     let tickSinceEl = document.createElement("p");
-//     tickSinceEl.className = "text-light";
-
-//     tickSinceEl.textContent = `The current tick time is ${tick.toHuman()}.  The number of complete ticks since last visit is ${timeSince.splitBy(tick).length -1}.`
-
-//     mainEl.append(tickSinceEl);
-
-//     let ticksActive = 0;
-//     let ticksActiveEl = document.createElement("p");
-//     ticksActiveEl.className = "text-light";
-
-//     mainEl.append(ticksActiveEl);
-
-//     setInterval(function() {
-//         ticksActive++;
-//         ticksActiveEl.textContent = `The number of ticks that have passed since you have been here is ${ticksActive}.`
-//     }, 20000);
-// }
-
-// lastVisitEstimate(timeSince);
+    statusEl.textContent = `Active last tick:  ${date} at ${time}, ${relative}`;
+}, 1000)
 
 // function resourceCard(resource, qty, max) {
 //     let cardEl = document.createElement("div");
