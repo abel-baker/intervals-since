@@ -42,13 +42,15 @@ function latestTick() {
 }
 
 function newSaveData(lastTick, visitCount, totalTicks) {
-    let saveData = { lastTick: lastTick, visitCount: visitCount, totalTicks: totalTicks };
+    let saveData = { lastTick: lastTick, visitCount: visitCount, totalTicks: totalTicks,
+        firstVisit: now };
 
     window.localStorage.setItem("tick-data", JSON.stringify(saveData));
 }
 // Save data object to the data category provided
 function saveData(cat, obj) {
     const oldData = JSON.parse(window.localStorage.getItem(cat));
+    if (!oldData.firstVisit) oldData.firstVisit = now;
 
     // Merge with current data so not all properties need to be added every time to the argument object
     let merged = {...oldData, ...obj};
@@ -74,12 +76,19 @@ mainEl.appendChild(lastVisitEl);
 lastVisitEl.className = "text-light";
 lastVisitEl.textContent = `Your last recorded tick was on ${date} at ${time}, ${relative}.`;
 
-// Get the number of tick-length intervals of time from now to the last recorded tick (data.lastTick)
+// Get the number of tick-length intervals of time from now to the last recorded visit (data.lastVisit)
 const timeSinceLastVisit = luxon.Interval.fromDateTimes(lastVisit, now);
 const ticksSinceLastVisit = timeSinceLastVisit.splitBy(tick).length - 1;
-console.log(timeSinceLastVisit.splitBy(tick));
+
+lastVisitEl.textContent += `  Since then, ${ticksSinceLastVisit} ticks have elapsed.`;
 
 saveData("tick-data", { lastVisit: now });
+
+let firstVisit = DateTime.fromISO(tickData.firstVisit);
+
+const timeSinceFirstVisit = luxon.Interval.fromDateTimes(firstVisit, now);
+const ticksSinceFirstVisit = timeSinceFirstVisit.splitBy(tick).length - 1;
+lastVisitEl.textContent += `  You've been here about ${firstVisit.toRelative()} altogether.  That's ${ticksSinceFirstVisit} ticks or so.`;
 
 // lastVisitEl.textContent += `  Since then, ${ticksSinceLastVisit} ticks have elapsed.
 //   Since the beginning, you have visited ${tickData.visitCount} times and lived through ${tickData.totalTicks + ticksSinceLastVisit} ticks.`;
