@@ -107,7 +107,6 @@ lastVisitEl.textContent += `  Your first visit was about ${firstVisit.toRelative
 
 
 
-
 mainEl.appendChild(villagerCard(angelo));
 
 function saveVillager(villager) {
@@ -120,15 +119,20 @@ function villagerCard(villager) {
     cardEl.style.display = "inline-block";
 
     cardEl.innerHTML = `
-        <div class="card-header"> 
-            <i class="bi bi-person-circle"></i> ${villager.name}
-        </div>
-        <div class="card-body">
-            <i class="bi bi-boxes"></i> ${villager.profession.resource}: ${villager.holding} <span style="color: #F6BB42;">/ ${villager.profession.hold}</span>
-        </div>
-        <div class="card-footer">
-            ${villager.profession.name}
+
+        <div class="card-body p-1" style="border: 1px solid gray; border-radius: 0.35rem; border-width: 0 0 0 4px;">
+            ${villager.name}: ${villager.holding} <span style="color: #F6BB42;">/ ${villager.profession.hold}</span>
         </div>`;
+
+        // <div class="card-header"> 
+        //     <i class="bi bi-person-circle"></i> ${villager.name}
+        // </div>
+        // <div class="card-body">
+        //     <i class="bi bi-boxes"></i> ${villager.profession.resource}: ${villager.holding} <span style="color: #F6BB42;">/ ${villager.profession.hold}</span>
+        // </div>
+        // <div class="card-footer">
+        //     ${villager.profession.name}
+        // </div>
 
     return cardEl;
 }
