@@ -22,6 +22,3 @@ class Villager {
 }
 
 const angelo = new Villager("Angelo", Profession.Farmer);
-console.log(angelo);
-angelo.getResource();
-console.log(angelo);

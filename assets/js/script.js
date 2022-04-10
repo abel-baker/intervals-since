@@ -108,8 +108,11 @@ lastVisitEl.textContent += `  Your first visit was about ${firstVisit.toRelative
 
 
 
-mainEl.appendChild(villagerCard(villagerData.farmer));
-mainEl.appendChild(villagerCard(villagerData.farmer));
+mainEl.appendChild(villagerCard(angelo));
+
+function saveVillager(villager) {
+
+}
 
 function villagerCard(villager) {
     let cardEl = document.createElement("div");
@@ -118,13 +121,13 @@ function villagerCard(villager) {
 
     cardEl.innerHTML = `
         <div class="card-header"> 
-            <i class="bi bi-person-circle"></i> Angelo
+            <i class="bi bi-person-circle"></i> ${villager.name}
         </div>
         <div class="card-body">
-            <i class="bi bi-boxes"></i> Wood: 9 / 10
+            <i class="bi bi-boxes"></i> ${villager.profession.resource}: ${villager.holding} <span style="color: #F6BB42;">/ ${villager.profession.hold}</span>
         </div>
         <div class="card-footer">
-            ${villager.class}
+            ${villager.profession.name}
         </div>`;
 
     return cardEl;
