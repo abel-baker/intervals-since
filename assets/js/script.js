@@ -5,22 +5,35 @@ const visit_start = DateTime.now();
 
 // config
 const tick = Duration.fromObject({ seconds: 20 });
-const tick_group_length = 3;
+const tick_group_length = 4;
 const base = visit_start.startOf('day'); // DateTime; start of today ('midnight'), for now
 
 // computed utility values
 const time_since_base = Interval.fromDateTimes(base, visit_start).toDuration(); // Duration
 const ticks_since_base = Interval.fromDateTimes(base, visit_start).splitBy(tick).length - 1; // number
 
+// latest tick prior to the current visit loaded
 const visit_latest_tick = base.plus( Duration.fromObject({ milliseconds: time_since_base.toMillis() - Math.floor(time_since_base.toMillis() % tick.toMillis()) }) );
-// const visit_latest_tick = base.plus(tick.mapUnits(u => u * ticks_since_base).normalize()); // DateTime
 
 const tick_group = Math.floor(ticks_since_base / tick_group_length); // number
-const tick_position = ticks_since_base % tick_group_length; // number
+const tick_position = ticks_since_base % tick_group_length; // number; position within a tick group
 
 const ticks_per_day = Duration.fromObject({ hours: 24 }).toMillis() / tick.toMillis(); // number
 const tick_groups_per_day = ticks_per_day / tick_group_length; // number
-const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 'moon'];
+const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 'moon']; // temporary way to show off group position
+
+
+let prior_start = visit_latest_tick;
+
+// save-data
+if (window.localStorage.getItem('tick-data')) {
+  let data = JSON.parse(window.localStorage.getItem('tick-data'));
+  prior_start = DateTime.fromISO(data['prior_start']);
+  
+  window.localStorage.setItem('tick-data', JSON.stringify({ prior_start: visit_start }));
+} else {
+  window.localStorage.setItem('tick-data', JSON.stringify({ prior_start: visit_start }));
+}
 
 
 // utility functions
@@ -35,7 +48,8 @@ const mainEl = document.getElementById("main");
 mainEl.innerHTML = `
   <p class="text-light">Latest tick: ${icon(tick_position_icon[tick_position % tick_position_icon.length])} ${visit_latest_tick.toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>
   <p class="text-light">Ticks (${tick.toHuman()}) from start (${base.toLocaleString(DateTime.TIME_WITH_SECONDS)}): ${ticks_since_base}</p>
-  <p class="text-muted small">Tick group (${tick_group} / ${Math.floor(tick_groups_per_day)}), position (${tick_position} / ${tick_group_length}) </p>`;
+  <p class="text-muted small">Tick group (${tick_group} / ${Math.floor(tick_groups_per_day)}), position (${tick_position} / ${tick_group_length}) </p>
+  <p class="text-light">Prior visit started at ${prior_start.toLocaleString(DateTime.TIME_WITH_SECONDS)}`;
 
 // Readable stuff
 // let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
@@ -54,11 +68,11 @@ mainEl.innerHTML = `
 
 // saveData("tick-data", { lastVisit: now });
 
-let firstVisit = DateTime.fromISO(tickData.firstVisit);
+// let firstVisit = DateTime.fromISO(tickData.firstVisit);
 
-const timeSinceFirstVisit = luxon.Interval.fromDateTimes(firstVisit, visit_start);
-const ticksSinceFirstVisit = timeSinceFirstVisit.splitBy(tick).length - 1;
-lastVisitEl.innerHTML += `<p>You've been here about ${firstVisit.toRelative()} altogether.  That's ${ticksSinceFirstVisit} ticks or so.  Since the beginning, you have visited ${tickData.visitCount} times.</p>`;
+// const timeSinceFirstVisit = luxon.Interval.fromDateTimes(firstVisit, visit_start);
+// const ticksSinceFirstVisit = timeSinceFirstVisit.splitBy(tick).length - 1;
+// lastVisitEl.innerHTML += `<p>You've been here about ${firstVisit.toRelative()} altogether.  That's ${ticksSinceFirstVisit} ticks or so.  Since the beginning, you have visited ${tickData.visitCount} times.</p>`;
 
 // // Update/save time data
 // saveData("tick-data", { lastTick: latestTick(), visitCount: ++tickData.visitCount });
