@@ -1,70 +1,21 @@
 const DateTime = luxon.DateTime;
 const Duration = luxon.Duration;
-let now = DateTime.now();
-
-const resources = {
-    wood: {
-        weight: 0.1,
-        value: 1
-    },
-    stone: {
-        weight: 0.8,
-        value: 2
-    }
-}
-const professions = {
-    woodcutter: {
-        resource: "wood",
-        production: 1,
-        base_carry: 10
-    },
-    stonecutter: {
-        resource: "stone",
-        production: 1,
-        base_carry: 4
-    }
-}
+const Interval = luxon.Interval;
+const visit_start = DateTime.now();
 
 // config
-const tick = Duration.fromObject({ seconds: 20 });
+const tick = Duration.fromObject({ seconds: 40 });
+const base = visit_start.startOf('day'); // Start of today ('midnight'), for now
+
+const time_since_base = Interval.fromDateTimes(base, visit_start).toDuration();
+const ticks_since_base = Interval.fromDateTimes(base, visit_start).splitBy(tick).length - 1;
+
+const latest_tick = base.plus(tick.mapUnits(u => u * ticks_since_base).normalize());
+
+
 
 // DOM
 const mainEl = document.getElementById("main");
-
-// New visitor data
-if (!window.localStorage.getItem("tick-data")) {
-    newSaveData(latestTick(), 1, 0);
-}
-
-// Find the last third-of-a-minute
-function latestTick() {
-    return DateTime.now().minus(Duration.fromObject({ seconds: now.second % 20 }));
-}
-
-function newSaveData(lastTick, visitCount, totalTicks) {
-    let saveData = { lastTick: lastTick, visitCount: visitCount, totalTicks: totalTicks,
-        firstVisit: now };
-
-    window.localStorage.setItem("tick-data", JSON.stringify(saveData));
-}
-// Save data object to the data category provided
-function saveData(cat, obj) {
-    const oldData = JSON.parse(window.localStorage.getItem(cat));
-    if (!oldData.firstVisit) oldData.firstVisit = now;
-
-    // Merge with current data so not all properties need to be added every time to the argument object
-    let merged = {...oldData, ...obj};
-
-    window.localStorage.setItem(cat, JSON.stringify(merged));
-}
-
-const tickData = JSON.parse(window.localStorage.getItem("tick-data"));
-
-// Last visit is the DateTime at the start of the last visit (or the lastest tick, if there isn't one)
-let lastVisit = tickData.lastVisit? DateTime.fromISO(tickData.lastVisit) : latestTick(); // DateTime
-
-let lastTick = DateTime.fromISO(tickData.lastTick);
-lastTick = lastTick.minus(Duration.fromObject({ seconds: lastTick.second % 20 }));
 
 // Readable stuff
 let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
@@ -73,29 +24,24 @@ let relative = lastVisit.toRelative();
 
 const lastVisitEl = document.createElement("p");
 mainEl.appendChild(lastVisitEl);
-lastVisitEl.className = "text-light";
-lastVisitEl.textContent = `Your last recorded tick was on ${date} at ${time}, ${relative}.`;
 
 // Get the number of tick-length intervals of time from now to the last recorded visit (data.lastVisit)
-const timeSinceLastVisit = luxon.Interval.fromDateTimes(lastVisit, now);
+const timeSinceLastVisit = luxon.Interval.fromDateTimes(lastVisit, visit_start);
 const ticksSinceLastVisit = timeSinceLastVisit.splitBy(tick).length - 1;
 
-lastVisitEl.textContent += `  Since then, ${ticksSinceLastVisit} ticks have elapsed.`;
+lastVisitEl.className = "text-light";
+lastVisitEl.innerHTML = `<p>Your last recorded visit was on ${date} at ${time}, ${relative}.  Since then, ${ticksSinceLastVisit} ticks have elapsed.</p>`;
 
-saveData("tick-data", { lastVisit: now });
+// saveData("tick-data", { lastVisit: now });
 
 let firstVisit = DateTime.fromISO(tickData.firstVisit);
 
-const timeSinceFirstVisit = luxon.Interval.fromDateTimes(firstVisit, now);
+const timeSinceFirstVisit = luxon.Interval.fromDateTimes(firstVisit, visit_start);
 const ticksSinceFirstVisit = timeSinceFirstVisit.splitBy(tick).length - 1;
-lastVisitEl.textContent += `  You've been here about ${firstVisit.toRelative()} altogether.  That's ${ticksSinceFirstVisit} ticks or so.`;
-
-// lastVisitEl.textContent += `  Since then, ${ticksSinceLastVisit} ticks have elapsed.
-//   Since the beginning, you have visited ${tickData.visitCount} times and lived through ${tickData.totalTicks + ticksSinceLastVisit} ticks.`;
+lastVisitEl.innerHTML += `<p>You've been here about ${firstVisit.toRelative()} altogether.  That's ${ticksSinceFirstVisit} ticks or so.  Since the beginning, you have visited ${tickData.visitCount} times.</p>`;
 
 // // Update/save time data
-// saveData("tick-data", { lastTick: latestTick(), visitCount: ++tickData.visitCount, totalTicks: tickData.totalTicks + ticksSinceLastVisit });
-// saveData("resource-data", { woodCount: 4 });
+// saveData("tick-data", { lastTick: latestTick(), visitCount: ++tickData.visitCount });
 
 // const statusEl = document.createElement("p");
 // statusEl.className = "text-light";
