@@ -4,33 +4,53 @@ const Interval = luxon.Interval;
 const visit_start = DateTime.now();
 
 // config
-const tick = Duration.fromObject({ seconds: 40 });
-const base = visit_start.startOf('day'); // Start of today ('midnight'), for now
+const tick = Duration.fromObject({ seconds: 20 });
+const tick_group_length = 3;
+const base = visit_start.startOf('day'); // DateTime; start of today ('midnight'), for now
 
-const time_since_base = Interval.fromDateTimes(base, visit_start).toDuration();
-const ticks_since_base = Interval.fromDateTimes(base, visit_start).splitBy(tick).length - 1;
+// computed utility values
+const time_since_base = Interval.fromDateTimes(base, visit_start).toDuration(); // Duration
+const ticks_since_base = Interval.fromDateTimes(base, visit_start).splitBy(tick).length - 1; // number
 
-const latest_tick = base.plus(tick.mapUnits(u => u * ticks_since_base).normalize());
+const visit_latest_tick = base.plus( Duration.fromObject({ milliseconds: time_since_base.toMillis() - Math.floor(time_since_base.toMillis() % tick.toMillis()) }) );
+// const visit_latest_tick = base.plus(tick.mapUnits(u => u * ticks_since_base).normalize()); // DateTime
+
+const tick_group = Math.floor(ticks_since_base / tick_group_length); // number
+const tick_position = ticks_since_base % tick_group_length; // number
+
+const ticks_per_day = Duration.fromObject({ hours: 24 }).toMillis() / tick.toMillis(); // number
+const tick_groups_per_day = ticks_per_day / tick_group_length; // number
+const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 'moon'];
 
 
+// utility functions
+
+function icon(i) {
+    return `<i class="bi bi-${i}"></i>`;
+}
 
 // DOM
 const mainEl = document.getElementById("main");
 
-// Readable stuff
-let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
-let time = lastVisit.toLocaleString(DateTime.TIME_WITH_SECONDS);
-let relative = lastVisit.toRelative();
+mainEl.innerHTML = `
+  <p class="text-light">Latest tick: ${icon(tick_position_icon[tick_position % tick_position_icon.length])} ${visit_latest_tick.toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>
+  <p class="text-light">Ticks (${tick.toHuman()}) from start (${base.toLocaleString(DateTime.TIME_WITH_SECONDS)}): ${ticks_since_base}</p>
+  <p class="text-muted small">Tick group (${tick_group} / ${Math.floor(tick_groups_per_day)}), position (${tick_position} / ${tick_group_length}) </p>`;
 
-const lastVisitEl = document.createElement("p");
-mainEl.appendChild(lastVisitEl);
+// Readable stuff
+// let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
+// let time = lastVisit.toLocaleString(DateTime.TIME_WITH_SECONDS);
+// let relative = lastVisit.toRelative();
+
+// const lastVisitEl = document.createElement("p");
+// mainEl.appendChild(lastVisitEl);
 
 // Get the number of tick-length intervals of time from now to the last recorded visit (data.lastVisit)
-const timeSinceLastVisit = luxon.Interval.fromDateTimes(lastVisit, visit_start);
-const ticksSinceLastVisit = timeSinceLastVisit.splitBy(tick).length - 1;
+// const timeSinceLastVisit = luxon.Interval.fromDateTimes(lastVisit, visit_start);
+// const ticksSinceLastVisit = timeSinceLastVisit.splitBy(tick).length - 1;
 
-lastVisitEl.className = "text-light";
-lastVisitEl.innerHTML = `<p>Your last recorded visit was on ${date} at ${time}, ${relative}.  Since then, ${ticksSinceLastVisit} ticks have elapsed.</p>`;
+// lastVisitEl.className = "text-light";
+// lastVisitEl.innerHTML = `<p>Your last recorded visit was on ${date} at ${time}, ${relative}.  Since then, ${ticksSinceLastVisit} ticks have elapsed.</p>`;
 
 // saveData("tick-data", { lastVisit: now });
 
