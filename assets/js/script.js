@@ -28,7 +28,8 @@ const tick_groups_per_day = ticks_per_day / tick_group_length; // number
 const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 'moon']; // temporary way to show off group position
 
 // data from localStorage
-let prior_start = tick_data.prior_start; // DateTime
+let prior_start = DateTime.fromISO(tick_data.prior_start); // DateTime
+const ticks_since_prior_visit = ticksBetween(prior_start, visit_start);
 
 // tick functions
 
@@ -46,6 +47,41 @@ function tickPosition(time = visit_start) {
 function ticksBetween(first, last, dur = tick) {
   return Interval.fromDateTimes(first, last).splitBy(dur).length - 1;
 }
+
+
+// village data
+const village_data = retrieveData('village-data');
+
+if (village_data.villagers) {
+  console.log('Villagers:');
+  console.log(village_data.villagers);
+  for (let villager in village_data.villagers) {
+    let v = village_data.villagers[villager];
+
+    runTicks(ticks_since_prior_visit, () => giveVillager(v));
+
+    let log = `${v.name} (${v.resource})`;
+    console.log(log);
+    saveData('village-data', village_data);
+  }
+} else {
+  console.log('No villagers');
+
+  village_data.villagers = { antonio: { name: 'Antonio', job: 'farmer' }};
+  saveData('village-data', village_data);
+}
+function verifyVillager(villager) {
+  if (!villager.resource) {
+    villager.resource = 0;
+  }
+}
+function giveVillager(villager, count = 1) {
+  verifyVillager(villager);
+  villager.resource ++;
+  return villager.resource;
+}
+
+
 function runTicks(count, run) {
   for (let i = 0; i < count; i++) {
     run();
@@ -90,6 +126,7 @@ if (window.localStorage.getItem('tick-data')) {
   saveData('tick-data', { prior_start: visit_start });
   // window.localStorage.setItem('tick-data', JSON.stringify({ prior_start: visit_start }));
 }
+
 
 // utility functions
 
