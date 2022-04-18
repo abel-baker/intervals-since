@@ -1,4 +1,4 @@
-const DateTime = luxon.DateTime;
+;const DateTime = luxon.DateTime;
 const Duration = luxon.Duration;
 const Interval = luxon.Interval;
 const visit_start = DateTime.now();
@@ -8,9 +8,12 @@ const tick = Duration.fromObject({ seconds: 20 });
 const tick_group_length = 4;
 const base = visit_start.startOf('day'); // DateTime; start of today ('midnight'), for now
 
+const tick_data = retrieveData('tick-data');
+
 // computed utility values
 const time_since_base = Interval.fromDateTimes(base, visit_start).toDuration(); // Duration
-const ticks_since_base = Interval.fromDateTimes(base, visit_start).splitBy(tick).length - 1; // number
+const ticks_since_base = ticksBetween(base, visit_start);
+// const ticks_since_base = Interval.fromDateTimes(base, visit_start).splitBy(tick).length - 1; // number
 
 // latest tick prior to the current visit loaded
 const visit_latest_tick = base.plus( Duration.fromObject({ milliseconds: time_since_base.toMillis() - Math.floor(time_since_base.toMillis() % tick.toMillis()) }) );
@@ -22,17 +25,62 @@ const ticks_per_day = Duration.fromObject({ hours: 24 }).toMillis() / tick.toMil
 const tick_groups_per_day = ticks_per_day / tick_group_length; // number
 const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 'moon']; // temporary way to show off group position
 
+// data from localStorage
+let prior_start = tick_data.prior_start;
 
-let prior_start = visit_latest_tick;
+
+// tick functions
+
+// ticks (number) between two passed DateTime objects; optional duration override instead of using ticks
+function latestTick(time = visit_start) {
+  return base.plus()
+}
+function ticksBetween(first, last, dur = tick) {
+  return Interval.fromDateTimes(first, last).splitBy(dur).length - 1;
+}
+function runTicks(count, run) {
+  for (let i = 0; i < count; i++) {
+    run();
+  }
+}
+
+
+// save functions
+
+// Create/update saved data in localStorage for the "category" string passed; return false if no existing data
+function saveData(cat, obj) {
+  if (!window.localStorage.getItem(cat)) {
+    window.localStorage.setItem(cat, JSON.stringify( {} ));
+    return false;
+  };
+
+  const existingData = JSON.parse(window.localStorage.getItem(cat));
+  if (cat == 'tick-data' && !existingData.firstVisit) {
+    existingData.firstVisit = visit_start;
+  }
+
+  let merged = {...existingData, ...obj};
+
+  window.localStorage.setItem(cat, JSON.stringify(merged));
+  return true;
+}
+
+function retrieveData(cat) {
+  if (!window.localStorage.getItem(cat)) return {};
+
+  return JSON.parse(window.localStorage.getItem(cat));
+}
 
 // save-data
 if (window.localStorage.getItem('tick-data')) {
   let data = JSON.parse(window.localStorage.getItem('tick-data'));
   prior_start = DateTime.fromISO(data['prior_start']);
   
-  window.localStorage.setItem('tick-data', JSON.stringify({ prior_start: visit_start }));
+  saveData('tick-data', { prior_start: visit_start });
+  // window.localStorage.setItem('tick-data', JSON.stringify({ prior_start: visit_start }));
 } else {
-  window.localStorage.setItem('tick-data', JSON.stringify({ prior_start: visit_start }));
+  saveData('tick-data', { prior_start: visit_start });
+  // window.localStorage.setItem('tick-data', JSON.stringify({ prior_start: visit_start }));
 }
 
 
@@ -50,6 +98,13 @@ mainEl.innerHTML = `
   <p class="text-light">Ticks (${tick.toHuman()}) from start (${base.toLocaleString(DateTime.TIME_WITH_SECONDS)}): ${ticks_since_base}</p>
   <p class="text-muted small">Tick group (${tick_group} / ${Math.floor(tick_groups_per_day)}), position (${tick_position} / ${tick_group_length}) </p>
   <p class="text-light">Prior visit started at ${prior_start.toLocaleString(DateTime.TIME_WITH_SECONDS)}`;
+
+
+let item = 3;
+runTicks(4, function() {
+  item++;
+});
+console.log(item);
 
 // Readable stuff
 // let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
