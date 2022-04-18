@@ -16,24 +16,32 @@ const ticks_since_base = ticksBetween(base, visit_start);
 // const ticks_since_base = Interval.fromDateTimes(base, visit_start).splitBy(tick).length - 1; // number
 
 // latest tick prior to the current visit loaded
-const visit_latest_tick = base.plus( Duration.fromObject({ milliseconds: time_since_base.toMillis() - Math.floor(time_since_base.toMillis() % tick.toMillis()) }) );
+const visit_latest_tick = latestTick();
+// const visit_latest_tick = base.plus( Duration.fromObject({ milliseconds: time_since_base.toMillis() - Math.floor(time_since_base.toMillis() % tick.toMillis()) }) );
 
-const tick_group = Math.floor(ticks_since_base / tick_group_length); // number
-const tick_position = ticks_since_base % tick_group_length; // number; position within a tick group
+const tick_group = tickGroup(); // number
+const tick_position = tickPosition();
+// const tick_position = ticks_since_base % tick_group_length; // number; position within a tick group
 
 const ticks_per_day = Duration.fromObject({ hours: 24 }).toMillis() / tick.toMillis(); // number
 const tick_groups_per_day = ticks_per_day / tick_group_length; // number
 const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 'moon']; // temporary way to show off group position
 
 // data from localStorage
-let prior_start = tick_data.prior_start;
-
+let prior_start = tick_data.prior_start; // DateTime
 
 // tick functions
 
 // ticks (number) between two passed DateTime objects; optional duration override instead of using ticks
 function latestTick(time = visit_start) {
-  return base.plus()
+  let duration = Interval.fromDateTimes(base, time).toDuration();
+  return base.plus(Duration.fromObject({ milliseconds: duration.toMillis() - Math.floor(duration.toMillis() % tick.toMillis()) }))
+}
+function tickGroup(time = visit_start) {
+  return Math.floor(ticksBetween(base, time) / tick_group_length);
+}
+function tickPosition(time = visit_start) {
+  return ticksBetween(base, time) % tick_group_length;
 }
 function ticksBetween(first, last, dur = tick) {
   return Interval.fromDateTimes(first, last).splitBy(dur).length - 1;
@@ -83,7 +91,6 @@ if (window.localStorage.getItem('tick-data')) {
   // window.localStorage.setItem('tick-data', JSON.stringify({ prior_start: visit_start }));
 }
 
-
 // utility functions
 
 function icon(i) {
@@ -96,7 +103,7 @@ const mainEl = document.getElementById("main");
 mainEl.innerHTML = `
   <p class="text-light">Latest tick: ${icon(tick_position_icon[tick_position % tick_position_icon.length])} ${visit_latest_tick.toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>
   <p class="text-light">Ticks (${tick.toHuman()}) from start (${base.toLocaleString(DateTime.TIME_WITH_SECONDS)}): ${ticks_since_base}</p>
-  <p class="text-muted small">Tick group (${tick_group} / ${Math.floor(tick_groups_per_day)}), position (${tick_position} / ${tick_group_length}) </p>
+  <p class="text-muted small">Tick group (${tickGroup()} / ${Math.floor(tick_groups_per_day)}), position (${tick_position} / ${tick_group_length}) </p>
   <p class="text-light">Prior visit started at ${prior_start.toLocaleString(DateTime.TIME_WITH_SECONDS)}`;
 
 
