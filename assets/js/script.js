@@ -59,6 +59,7 @@ if (village_data.villagers) {
     let v = village_data.villagers[villager];
 
     runTicks(ticks_since_prior_visit, () => giveVillager(v));
+    verifyVillager(v, 'hatched', visit_start.toISO());
 
     let log = `${v.name} (${v.resource})`;
     console.log(log);
@@ -67,16 +68,16 @@ if (village_data.villagers) {
 } else {
   console.log('No villagers');
 
-  village_data.villagers = { antonio: { name: 'Antonio', job: 'farmer' }};
+  village_data.villagers = { antonio: { name: 'Antonio', job: 'farmer', hatched: visit_start.toISO() }};
   saveData('village-data', village_data);
 }
-function verifyVillager(villager) {
-  if (!villager.resource) {
-    villager.resource = 0;
+function verifyVillager(villager, property, value = 0) {
+  if (!villager[property]) {
+    villager[property] = value;
   }
 }
 function giveVillager(villager, count = 1) {
-  verifyVillager(villager);
+  verifyVillager(villager, 'resource');
   villager.resource ++;
   return villager.resource;
 }
@@ -137,18 +138,15 @@ function icon(i) {
 // DOM
 const mainEl = document.getElementById("main");
 
-mainEl.innerHTML = `
+setInterval( function () {  
+  mainEl.innerHTML = `
   <p class="text-light">Latest tick: ${icon(tick_position_icon[tick_position % tick_position_icon.length])} ${visit_latest_tick.toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>
   <p class="text-light">Ticks (${tick.toHuman()}) from start (${base.toLocaleString(DateTime.TIME_WITH_SECONDS)}): ${ticks_since_base}</p>
   <p class="text-muted small">Tick group (${tickGroup()} / ${Math.floor(tick_groups_per_day)}), position (${tick_position} / ${tick_group_length}) </p>
   <p class="text-light">Prior visit started at ${prior_start.toLocaleString(DateTime.TIME_WITH_SECONDS)}`;
-
-
-let item = 3;
-runTicks(4, function() {
-  item++;
-});
-console.log(item);
+  
+}
+, 1000);
 
 // Readable stuff
 // let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
