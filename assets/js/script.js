@@ -1,6 +1,6 @@
-const DateTime = luxon.DateTime;
-const Duration = luxon.Duration;
-const Interval = luxon.Interval;
+// const DateTime = luxon.DateTime;
+// const Duration = luxon.Duration;
+// const Interval = luxon.Interval;
 const visit_start = DateTime.now();
 
 
@@ -11,17 +11,16 @@ const tick_group_length = 4;
 const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 'moon']; // temporary way to show off group position
 
 const tick_data = retrieveData('tick-data');
+const ticker = new Ticker({ tick: tick, base: base });
+Ticker.tick = Duration.fromObject({ seconds: 10 });
+Ticker.group_length = 4;
 
 // computed utility values
 const time_since_base = Interval.fromDateTimes(base, visit_start).toDuration(); // Duration
-const ticks_since_base = ticksBetween(base, visit_start);
+const ticks_since_base = Ticker.ticksBetween(base, visit_start);
 // const ticks_since_base = Interval.fromDateTimes(base, visit_start).splitBy(tick).length - 1; // number
 
-// latest tick prior to the current visit loaded
-const visit_latest_tick = latestTick();
-// const visit_latest_tick = base.plus( Duration.fromObject({ milliseconds: time_since_base.toMillis() - Math.floor(time_since_base.toMillis() % tick.toMillis()) }) );
-
-const tick_group = tickGroup(); // number
+const tick_group = Ticker.tickGroup(visit_start); // number
 const tick_position = tickPosition();
 // const tick_position = ticks_since_base % tick_group_length; // number; position within a tick group
 
@@ -30,7 +29,7 @@ const tick_groups_per_day = ticks_per_day / tick_group_length; // number
 
 // data from localStorage
 let prior_start = DateTime.fromISO(tick_data.prior_start); // DateTime
-const ticks_since_prior_visit = ticksBetween(prior_start, visit_start);
+const ticks_since_prior_visit = Ticker.ticksBetween(prior_start, visit_start);
 
 
 // tick functions
@@ -40,23 +39,28 @@ function latestTick(time = visit_start) {
   let duration = Interval.fromDateTimes(base, time).toDuration();
   return base.plus(Duration.fromObject({ milliseconds: duration.toMillis() - Math.floor(duration.toMillis() % tick.toMillis()) }))
 }
-function tickGroup(time = visit_start) {
-  return Math.floor(ticksBetween(base, time) / tick_group_length);
-}
+// function tickGroup(time = visit_start) {
+//   return Math.floor(Ticker.ticksBetween(base, time) / tick_group_length);
+// }
 function tickPosition(time = visit_start) {
-  return ticksBetween(base, time) % tick_group_length;
+  return Ticker.ticksBetween(base, time) % tick_group_length;
 }
-function ticksBetween(first, last, dur = tick) {
-  return Interval.fromDateTimes(first, last).splitBy(dur).length - 1;
-}
+// function ticksBetween(first, last, dur = tick) {
+//   return Interval.fromDateTimes(first, last).splitBy(dur).length - 1;
+// } 
 
-let last_interval = tick_data.last_processed_tick? tick_data.last_processed_tick : DateTime.now();
-let time = refresh();
+
+
+// village data
+const village_data = retrieveData('village-data');
+
+let last_interval = tick_data.last_processed_tick? DateTime.fromISO(tick_data.last_processed_tick) : DateTime.now();
+refresh();
 
 function refresh() {
   let now = DateTime.now();
 
-  let ticks = ticksBetween(last_interval, now);
+  let ticks = Ticker.ticksBetween(last_interval, now);
   if (ticks >= 1) {
     runTicks(ticks);
     last_interval = latestTick(now);
@@ -69,11 +73,6 @@ function refresh() {
     tick_position: tickPosition(now),
   };
 }
-
-
-
-// village data
-const village_data = retrieveData('village-data');
 
 if (village_data.villagers) {
   console.log('Villagers:');

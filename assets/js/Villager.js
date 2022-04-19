@@ -9,7 +9,7 @@ class Villager {
       activity: this.activity = 'idle',
       hatched: this.hatched = luxon.DateTime.now().toISO()
     } = config)
-  };
+  }
     
   give(count = 1) {
     this.held += count;
