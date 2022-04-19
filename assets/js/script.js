@@ -157,28 +157,14 @@ setInterval( function () {
   time = refresh();
 
   mainEl.innerHTML = `
-  <p class="text-light">Latest tick: ${icon(tick_position_icon[time.tick_position % tick_position_icon.length])} ${time.latest_tick.toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>
+  <p class="text-light">Time now: ${DateTime.now().toLocaleString(DateTime.TIME_WITH_SECONDS)}; Latest tick: ${icon(tick_position_icon[time.tick_position % tick_position_icon.length])} ${time.latest_tick.toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>
   <p class="text-light">Ticks (${tick.toHuman()}) from start (${base.toLocaleString(DateTime.TIME_WITH_SECONDS)}): ${ticks_since_base}</p>
   <p class="text-muted small">Tick group (${time.tick_group} / ${Math.floor(tick_groups_per_day)}), position (${time.tick_position} / ${tick_group_length}) </p>
-  <p class="text-light">Prior visit started at ${prior_start.toLocaleString(DateTime.TIME_WITH_SECONDS)}, ${ticks_since_prior_visit} ticks between visits.`;
+  <p class="text-light">Prior visit started at ${prior_start.toLocaleString(DateTime.TIME_WITH_SECONDS)}, ${ticks_since_prior_visit} ticks between visits`;
 }
 , 1000);
 
-// let interval = setInterval(function() {
-//     let tickData = JSON.parse(window.localStorage.getItem("tick-data"));
-//     let lastTick = DateTime.fromISO(tickData.lastTick);
-    
-//     let date = lastTick.toLocaleString(DateTime.DATE_HUGE);
-//     let time = lastTick.toLocaleString(DateTime.TIME_WITH_SECONDS);
-//     let relative = lastTick.toRelative();
 
-//     let timeSince = luxon.Interval.fromDateTimes(lastTick, now);
-//     let ticksSince = Math.floor(timeSince.length("seconds") / 20);
-
-//     saveData("tick-data", { lastTick: latestTick() });
-
-//     statusEl.textContent = `Active last tick:  ${date} at ${time}, ${relative}`;
-// }, 1000)
 
 // function resourceCard(resource, qty, max) {
 //     let cardEl = document.createElement("div");
