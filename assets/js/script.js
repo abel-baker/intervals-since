@@ -5,7 +5,7 @@ const visit_start = DateTime.now();
 
 
 // config
-const tick = Duration.fromObject({ seconds: 20 });
+const tick = Duration.fromObject({ seconds: 10 });
 const base = visit_start.startOf('day'); // DateTime; start of today ('midnight'), for now
 const tick_group_length = 4;
 const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 'moon']; // temporary way to show off group position
@@ -50,10 +50,18 @@ function ticksBetween(first, last, dur = tick) {
   return Interval.fromDateTimes(first, last).splitBy(dur).length - 1;
 }
 
+let last_interval = tick_data.last_processed_tick? tick_data.last_processed_tick : DateTime.now();
 let time = refresh();
 
 function refresh() {
   let now = DateTime.now();
+
+  let ticks = ticksBetween(last_interval, now);
+  if (ticks >= 1) {
+    runTicks(ticks);
+    last_interval = latestTick(now);
+    saveData('tick-data', { last_processed_tick: last_interval });
+  }
 
   return {
     latest_tick: latestTick(now),
@@ -71,37 +79,42 @@ if (village_data.villagers) {
   console.log('Villagers:');
   console.log(village_data.villagers);
   for (let villager in village_data.villagers) {
-    let v = village_data.villagers[villager];
+    let v = new Villager(village_data.villagers[villager]);
 
     // runTicks(ticks_since_prior_visit, () => giveVillager(v));
-    runTicks(ticks_since_prior_visit, () => v.give());
-    verifyVillager(v, 'hatched', visit_start.toISO());
+    runTicks(ticks_since_prior_visit);
 
-    let log = `${v.name} (${v.held})`;
-    console.log(log);
+    // let log = `${v.name} (${v.held}): ${v.activity}`;
+    // console.log(log);
+    
+    village_data.villagers[villager] = v;
     saveData('village-data', village_data);
   }
 } else {
   console.log('No villagers');
 
-  village_data.villagers = { antonio: new Villager({ name: 'Antonio', job: 'farmer' })};
+  village_data.villagers = { 
+    antonio: new Villager({ name: 'Antonio', job: 'farmer' }), 
+    mikhail: new Villager({ name: 'Mikhail', job: 'farmer', wealth: 4, held: 8 })
+   };
   saveData('village-data', village_data);
 }
-function verifyVillager(villager, property, value = 0) {
-  if (!villager[property]) {
-    villager[property] = value;
-  }
-}
-function giveVillager(villager, count = 1) {
-  verifyVillager(villager, 'held');
-  villager.give();
-  return villager.held;
-}
 
 
-function runTicks(count, run) {
+function runTicks(count) {
   for (let i = 0; i < count; i++) {
-    run();
+    for (let villager in village_data.villagers) {
+      let v = new Villager(village_data.villagers[villager]);
+
+      v.completeActivity(v.activity);
+      v.activity = v.priority();
+      
+      // let log = `${v.name} (${v.held}): ${v.activity}`;
+      // console.log(log);
+      
+      village_data.villagers[villager] = v;
+      saveData('village-data', village_data);
+    }
   }
 }
 
@@ -135,7 +148,7 @@ function retrieveData(cat) {
 // save-data
 if (window.localStorage.getItem('tick-data')) {
   let data = JSON.parse(window.localStorage.getItem('tick-data'));
-  prior_start = DateTime.fromISO(data['prior_start']);
+  prior_start = data['prior-start'] ? DateTime.fromISO(data['prior_start']) : DateTime.now();
   
   saveData('tick-data', { prior_start: visit_start });
   // window.localStorage.setItem('tick-data', JSON.stringify({ prior_start: visit_start }));
