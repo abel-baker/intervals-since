@@ -1,7 +1,8 @@
-;const DateTime = luxon.DateTime;
+const DateTime = luxon.DateTime;
 const Duration = luxon.Duration;
 const Interval = luxon.Interval;
 const visit_start = DateTime.now();
+
 
 // config
 const tick = Duration.fromObject({ seconds: 20 });
@@ -72,17 +73,18 @@ if (village_data.villagers) {
   for (let villager in village_data.villagers) {
     let v = village_data.villagers[villager];
 
-    runTicks(ticks_since_prior_visit, () => giveVillager(v));
+    // runTicks(ticks_since_prior_visit, () => giveVillager(v));
+    runTicks(ticks_since_prior_visit, () => v.give());
     verifyVillager(v, 'hatched', visit_start.toISO());
 
-    let log = `${v.name} (${v.resource})`;
+    let log = `${v.name} (${v.held})`;
     console.log(log);
     saveData('village-data', village_data);
   }
 } else {
   console.log('No villagers');
 
-  village_data.villagers = { antonio: { name: 'Antonio', job: 'farmer', hatched: visit_start.toISO() }};
+  village_data.villagers = { antonio: new Villager({ name: 'Antonio', job: 'farmer' })};
   saveData('village-data', village_data);
 }
 function verifyVillager(villager, property, value = 0) {
@@ -91,9 +93,9 @@ function verifyVillager(villager, property, value = 0) {
   }
 }
 function giveVillager(villager, count = 1) {
-  verifyVillager(villager, 'resource');
-  villager.resource ++;
-  return villager.resource;
+  verifyVillager(villager, 'held');
+  villager.give();
+  return villager.held;
 }
 
 
