@@ -5,8 +5,9 @@ const visit_start = DateTime.now();
 
 // config
 const tick = Duration.fromObject({ seconds: 20 });
-const tick_group_length = 4;
 const base = visit_start.startOf('day'); // DateTime; start of today ('midnight'), for now
+const tick_group_length = 4;
+const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 'moon']; // temporary way to show off group position
 
 const tick_data = retrieveData('tick-data');
 
@@ -25,11 +26,11 @@ const tick_position = tickPosition();
 
 const ticks_per_day = Duration.fromObject({ hours: 24 }).toMillis() / tick.toMillis(); // number
 const tick_groups_per_day = ticks_per_day / tick_group_length; // number
-const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 'moon']; // temporary way to show off group position
 
 // data from localStorage
 let prior_start = DateTime.fromISO(tick_data.prior_start); // DateTime
 const ticks_since_prior_visit = ticksBetween(prior_start, visit_start);
+
 
 // tick functions
 
@@ -47,6 +48,19 @@ function tickPosition(time = visit_start) {
 function ticksBetween(first, last, dur = tick) {
   return Interval.fromDateTimes(first, last).splitBy(dur).length - 1;
 }
+
+let time = refresh();
+
+function refresh() {
+  let now = DateTime.now();
+
+  return {
+    latest_tick: latestTick(now),
+    tick_group: tickGroup(now),
+    tick_position: tickPosition(now),
+  };
+}
+
 
 
 // village data
@@ -135,48 +149,20 @@ function icon(i) {
     return `<i class="bi bi-${i}"></i>`;
 }
 
+
 // DOM
 const mainEl = document.getElementById("main");
 
-setInterval( function () {  
+setInterval( function () {
+  time = refresh();
+
   mainEl.innerHTML = `
-  <p class="text-light">Latest tick: ${icon(tick_position_icon[tick_position % tick_position_icon.length])} ${visit_latest_tick.toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>
+  <p class="text-light">Latest tick: ${icon(tick_position_icon[time.tick_position % tick_position_icon.length])} ${time.latest_tick.toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>
   <p class="text-light">Ticks (${tick.toHuman()}) from start (${base.toLocaleString(DateTime.TIME_WITH_SECONDS)}): ${ticks_since_base}</p>
-  <p class="text-muted small">Tick group (${tickGroup()} / ${Math.floor(tick_groups_per_day)}), position (${tick_position} / ${tick_group_length}) </p>
-  <p class="text-light">Prior visit started at ${prior_start.toLocaleString(DateTime.TIME_WITH_SECONDS)}`;
-  
+  <p class="text-muted small">Tick group (${time.tick_group} / ${Math.floor(tick_groups_per_day)}), position (${time.tick_position} / ${tick_group_length}) </p>
+  <p class="text-light">Prior visit started at ${prior_start.toLocaleString(DateTime.TIME_WITH_SECONDS)}, ${ticks_since_prior_visit} ticks between visits.`;
 }
 , 1000);
-
-// Readable stuff
-// let date = lastVisit.toLocaleString(DateTime.DATE_HUGE);
-// let time = lastVisit.toLocaleString(DateTime.TIME_WITH_SECONDS);
-// let relative = lastVisit.toRelative();
-
-// const lastVisitEl = document.createElement("p");
-// mainEl.appendChild(lastVisitEl);
-
-// Get the number of tick-length intervals of time from now to the last recorded visit (data.lastVisit)
-// const timeSinceLastVisit = luxon.Interval.fromDateTimes(lastVisit, visit_start);
-// const ticksSinceLastVisit = timeSinceLastVisit.splitBy(tick).length - 1;
-
-// lastVisitEl.className = "text-light";
-// lastVisitEl.innerHTML = `<p>Your last recorded visit was on ${date} at ${time}, ${relative}.  Since then, ${ticksSinceLastVisit} ticks have elapsed.</p>`;
-
-// saveData("tick-data", { lastVisit: now });
-
-// let firstVisit = DateTime.fromISO(tickData.firstVisit);
-
-// const timeSinceFirstVisit = luxon.Interval.fromDateTimes(firstVisit, visit_start);
-// const ticksSinceFirstVisit = timeSinceFirstVisit.splitBy(tick).length - 1;
-// lastVisitEl.innerHTML += `<p>You've been here about ${firstVisit.toRelative()} altogether.  That's ${ticksSinceFirstVisit} ticks or so.  Since the beginning, you have visited ${tickData.visitCount} times.</p>`;
-
-// // Update/save time data
-// saveData("tick-data", { lastTick: latestTick(), visitCount: ++tickData.visitCount });
-
-// const statusEl = document.createElement("p");
-// statusEl.className = "text-light";
-// mainEl.appendChild(statusEl);
 
 // let interval = setInterval(function() {
 //     let tickData = JSON.parse(window.localStorage.getItem("tick-data"));
