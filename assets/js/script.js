@@ -12,16 +12,18 @@ const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 
 
 const tick_data = retrieveData('tick-data');
 const ticker = new Ticker({ tick: tick, base: base });
+console.log(ticker);
 Ticker.tick = Duration.fromObject({ seconds: 10 });
 Ticker.group_length = 4;
+console.log(ticker.latestTick());
 
 // computed utility values
 const time_since_base = Interval.fromDateTimes(base, visit_start).toDuration(); // Duration
 const ticks_since_base = Ticker.ticksBetween(base, visit_start);
 // const ticks_since_base = Interval.fromDateTimes(base, visit_start).splitBy(tick).length - 1; // number
 
-const tick_group = Ticker.tickGroup(visit_start); // number
-const tick_position = tickPosition();
+const tick_group = ticker.tickGroup(visit_start); // number
+const tick_position = ticker.tickPosition(visit_start);
 // const tick_position = ticks_since_base % tick_group_length; // number; position within a tick group
 
 const ticks_per_day = Duration.fromObject({ hours: 24 }).toMillis() / tick.toMillis(); // number
@@ -42,9 +44,9 @@ function latestTick(time = visit_start) {
 // function tickGroup(time = visit_start) {
 //   return Math.floor(Ticker.ticksBetween(base, time) / tick_group_length);
 // }
-function tickPosition(time = visit_start) {
-  return Ticker.ticksBetween(base, time) % tick_group_length;
-}
+// function tickPosition(time = visit_start) {
+//   return Ticker.ticksBetween(base, time) % tick_group_length;
+// }
 // function ticksBetween(first, last, dur = tick) {
 //   return Interval.fromDateTimes(first, last).splitBy(dur).length - 1;
 // } 
@@ -54,7 +56,8 @@ function tickPosition(time = visit_start) {
 // village data
 const village_data = retrieveData('village-data');
 
-let last_interval = tick_data.last_processed_tick? DateTime.fromISO(tick_data.last_processed_tick) : DateTime.now();
+let last_interval = DateTime.now();
+ticker.last_processed_tick = last_interval;
 refresh();
 
 function refresh() {
@@ -68,9 +71,9 @@ function refresh() {
   }
 
   return {
-    latest_tick: latestTick(now),
-    tick_group: tickGroup(now),
-    tick_position: tickPosition(now),
+    latest_tick: ticker.latestTick(),
+    tick_group: ticker.tickGroup(),
+    tick_position: ticker.tickPosition(),
   };
 }
 
@@ -169,11 +172,15 @@ const mainEl = document.getElementById("main");
 
 setInterval( function () {
   time = refresh();
+  if (ticker.ticked()) {
+    console.log(`Tick!: ${ticker.last_processed_tick}`);
+    ticker.last_processed_tick = ticker.latestTick();
+  }
 
   mainEl.innerHTML = `
-  <p class="text-light">Time now: ${DateTime.now().toLocaleString(DateTime.TIME_WITH_SECONDS)}; Latest tick: ${icon(tick_position_icon[time.tick_position % tick_position_icon.length])} ${time.latest_tick.toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>
-  <p class="text-light">Ticks (${tick.toHuman()}) from start (${base.toLocaleString(DateTime.TIME_WITH_SECONDS)}): ${ticks_since_base}</p>
-  <p class="text-muted small">Tick group (${time.tick_group} / ${Math.floor(tick_groups_per_day)}), position (${time.tick_position} / ${tick_group_length}) </p>
+  <p class="text-light">Time now: ${DateTime.now().toLocaleString(DateTime.TIME_WITH_SECONDS)}; Latest tick: ${icon(tick_position_icon[ticker.tickPosition() % tick_position_icon.length])} ${ticker.latestTick(true)}</p>
+  <p class="text-light">Ticks (${ticker.tick.toHuman()}) from start (${base.toLocaleString(DateTime.TIME_WITH_SECONDS)}): ${ticks_since_base}</p>
+  <p class="text-muted small">Tick group (${ticker.tickGroup()} / ${Math.floor(tick_groups_per_day)}), position (${ticker.tickPosition()} / ${tick_group_length}) </p>
   <p class="text-light">Prior visit started at ${prior_start.toLocaleString(DateTime.TIME_WITH_SECONDS)}, ${ticks_since_prior_visit} ticks between visits`;
 }
 , 1000);
