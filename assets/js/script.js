@@ -53,7 +53,7 @@ function refresh() {
 
   let ticks = Ticker.ticksBetween(last_interval, now);
   if (ticks >= 1) {
-    runTicks(ticks);
+    runTicks(ticks, true);
     last_interval = latestTick(now);
     saveData('tick-data', { last_processed_tick: last_interval });
   }
@@ -69,11 +69,7 @@ if (village_data.villagers) {
   for (let villager in village_data.villagers) {
     let v = new Villager(village_data.villagers[villager]);
 
-    // runTicks(ticks_since_prior_visit, () => giveVillager(v));
-    runTicks(ticks_since_prior_visit);
-
-    // let log = `${v.name} (${v.held}): ${v.activity}`;
-    // console.log(log);
+    runTicks(ticks_since_prior_visit, false);
     
     village_data.villagers[villager] = v;
     saveData('village-data', village_data);
@@ -81,19 +77,21 @@ if (village_data.villagers) {
 } else {
   village_data.villagers = { 
     antonio: new Villager({ name: 'Antonio', job: 'farmer' }), 
-    mikhail: new Villager({ name: 'Mikhail', job: 'farmer', wealth: 4, held: 8 })
+    mikhail: new Villager({ name: 'Mikhail', job: 'quarrier', wealth: 4, held: 8 })
    };
   saveData('village-data', village_data);
 }
 
 
-function runTicks(count) {
+function runTicks(count, log) {
   for (let i = 0; i < count; i++) {
     for (let villager in village_data.villagers) {
       let v = new Villager(village_data.villagers[villager]);
 
-      v.completeActivity(v.activity);
+      let report = v.completeActivity(v.activity);
       v.activity = v.priority();
+      report += `; on to ${v.activity}`;
+      if (log) console.log(report);
       
       // let log = `${v.name} (${v.held}): ${v.activity}`;
       // console.log(log);
@@ -155,11 +153,12 @@ function icon(i) {
 const mainEl = document.getElementById("main");
 
 setInterval( function () {
-  time = refresh();
   if (ticker.ticked()) {
     console.log(`Tick!: ${ticker.last_processed_tick}`);
     ticker.last_processed_tick = ticker.latestTick();
   }
+  // time = refresh();
+  refresh();
 
   mainEl.innerHTML = `
   <p class="text-light">Time now: ${DateTime.now().toLocaleString(DateTime.TIME_WITH_SECONDS)}; Latest tick: ${icon(tick_position_icon[ticker.tickPosition() % tick_position_icon.length])} ${ticker.latestTick().toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>

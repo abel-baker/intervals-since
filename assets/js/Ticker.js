@@ -14,11 +14,10 @@ class Ticker {
 
   static tick;
 
-  latestTick(readable = true, time = DateTime.now()) {
+  latestTick(time = DateTime.now()) {
     let duration = Interval.fromDateTimes(this.base, time).toDuration();
     let offset = Duration.fromObject({ milliseconds: duration.toMillis() - Math.floor(duration.toMillis() % this.tick.toMillis() )});
-    let out = this.base.plus(offset);
-    return out;
+    return this.base.plus(offset);
   }
   tickPosition(time = DateTime.now()) {
     return Ticker.ticksBetween(this.base, time) % Ticker.group_length;
