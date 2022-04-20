@@ -30,9 +30,8 @@ class Villager {
     }
     if (activity == 'gather') {
       this.held += 1;
-      console.log(`${this.name} completes gathering, gains +1 resource (now ${this.held})`);
+      console.log(`${this.name} is finished gathering (now ${this.held})`);
     }
-
     if (activity == 'market') {
       this.held -= 4;
       this.wealth += 4;

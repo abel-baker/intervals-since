@@ -37,8 +37,7 @@ class Ticker {
   // Returns whether there is a tick between the last processed tick and the latest one
   // Does not process anything, just reveals whether there is one to be dealt with
   ticked() {
-    console.log(this.last_processed_tick);
-    return Ticker.ticksBetween(this.last_processed_tick, this.latestTick()) >= 1;
+    return Ticker.ticksBetween(this.last_processed_tick, DateTime.now()) >= 1;
   }
 
   ticksSince(prior) {

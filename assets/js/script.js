@@ -12,10 +12,8 @@ const tick_position_icon = ['brightness-alt-high', 'sun', 'brightness-alt-low', 
 
 const tick_data = retrieveData('tick-data');
 const ticker = new Ticker({ tick: tick, base: base });
-console.log(ticker);
 Ticker.tick = Duration.fromObject({ seconds: 10 });
 Ticker.group_length = 4;
-console.log(ticker.latestTick());
 
 // computed utility values
 const time_since_base = Interval.fromDateTimes(base, visit_start).toDuration(); // Duration
@@ -41,16 +39,6 @@ function latestTick(time = visit_start) {
   let duration = Interval.fromDateTimes(base, time).toDuration();
   return base.plus(Duration.fromObject({ milliseconds: duration.toMillis() - Math.floor(duration.toMillis() % tick.toMillis()) }))
 }
-// function tickGroup(time = visit_start) {
-//   return Math.floor(Ticker.ticksBetween(base, time) / tick_group_length);
-// }
-// function tickPosition(time = visit_start) {
-//   return Ticker.ticksBetween(base, time) % tick_group_length;
-// }
-// function ticksBetween(first, last, dur = tick) {
-//   return Interval.fromDateTimes(first, last).splitBy(dur).length - 1;
-// } 
-
 
 
 // village data
@@ -78,8 +66,6 @@ function refresh() {
 }
 
 if (village_data.villagers) {
-  console.log('Villagers:');
-  console.log(village_data.villagers);
   for (let villager in village_data.villagers) {
     let v = new Villager(village_data.villagers[villager]);
 
@@ -93,8 +79,6 @@ if (village_data.villagers) {
     saveData('village-data', village_data);
   }
 } else {
-  console.log('No villagers');
-
   village_data.villagers = { 
     antonio: new Villager({ name: 'Antonio', job: 'farmer' }), 
     mikhail: new Villager({ name: 'Mikhail', job: 'farmer', wealth: 4, held: 8 })
@@ -178,7 +162,7 @@ setInterval( function () {
   }
 
   mainEl.innerHTML = `
-  <p class="text-light">Time now: ${DateTime.now().toLocaleString(DateTime.TIME_WITH_SECONDS)}; Latest tick: ${icon(tick_position_icon[ticker.tickPosition() % tick_position_icon.length])} ${ticker.latestTick(true)}</p>
+  <p class="text-light">Time now: ${DateTime.now().toLocaleString(DateTime.TIME_WITH_SECONDS)}; Latest tick: ${icon(tick_position_icon[ticker.tickPosition() % tick_position_icon.length])} ${ticker.latestTick().toLocaleString(DateTime.TIME_WITH_SECONDS)}</p>
   <p class="text-light">Ticks (${ticker.tick.toHuman()}) from start (${base.toLocaleString(DateTime.TIME_WITH_SECONDS)}): ${ticks_since_base}</p>
   <p class="text-muted small">Tick group (${ticker.tickGroup()} / ${Math.floor(tick_groups_per_day)}), position (${ticker.tickPosition()} / ${tick_group_length}) </p>
   <p class="text-light">Prior visit started at ${prior_start.toLocaleString(DateTime.TIME_WITH_SECONDS)}, ${ticks_since_prior_visit} ticks between visits`;
