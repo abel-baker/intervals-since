@@ -54,25 +54,24 @@ class Villager {
     return 'gather';
   }
 
+  toString() {
+    return `${this.name} (${this.held} ${professionData[this.job].resource}; ${this.wealth}c)`;
+  }
+
   completeActivity(activity) {
     let jobData = professionData[this.job];
     if (activity == 'idle') {
-      return `${this.name} (${jobData.resource} ${this.held}; ${this.wealth}c) is finished idling`;
+      return `${this.name} (${this.held} ${jobData.resource}; ${this.wealth}c) is finished idling`;
     }
     if (activity == 'gather') {
       this.held += 1;
-      return `${this.name} (${jobData.resource} ${this.held}; ${this.wealth}c) is finished gathering ${jobData.resource}`;
+      return `${this.name} (${this.held} ${jobData.resource}; ${this.wealth}c) is finished gathering ${jobData.resource}`;
     }
     if (activity == 'market') {
       this.held -= jobData.to_market;
       let sale = jobData.resource_value * jobData.to_market;
       this.wealth += sale;
-      return `${this.name} (${jobData.resource} ${this.held}; ${this.wealth}c) completes market, sold -${jobData.to_market} ${jobData.resource} for +${sale}c`;
+      return `${this.name} (${this.held} ${jobData.resource}; ${this.wealth}c) completes market, sold -${jobData.to_market} ${jobData.resource} for +${sale}c`;
     }
   }
-
-  // static methods for doing something related to Villagers but not one specific Villager instance
-
-  // Villager.method()
-  static method() {  }
 }

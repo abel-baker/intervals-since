@@ -1,0 +1,33 @@
+
+tick-data
+- last processed tick
+- duration data?  global or mutable?
+
+village-data
+- create time
+- villagers
+  - 'antonio'/vID
+    - hatched/create time (ISO datetime)
+    - wealth (int)
+    - Profession (json key, object)
+      - ...
+  - ... other villagers
+- shared wealth
+- shared resources (e.g. food) (json keys)
+- unlocks
+  - professions/industry
+  - upgrades
+
+time-data/visit-data
+- first visit
+- prior visit
+- visit count
+
+
+/// FEATURES
+
+Weather
+- weather conditions that affect activities such as productivity, available activities
+- forecasting that may or may not be accurate, affects priority activity for next tick
+- show the day's weather as a row of icons with the present conditions highlighted
+

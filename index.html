@@ -1,29 +1,42 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" />
-    <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="./assets/css/style.css">
 
-    <title>Intervals since you left</title>
+  <title>Intervals since you left</title>
 </head>
+
 <body class="bg-dark">
-    <header>
-        <h1 class="text-light">Intervals Since
-            <small class="text-muted">&ndash; What Happened</small>
-        </h1>
-    </header>
+  <header>
+    <h1 class="text-light">Intervals Since
+      <small class="text-muted">&ndash; What Happened</small>
+    </h1>
+  </header>
 
-    <main id="main">
+  <main id="main">
 
-    </main>
-    <script src="./assets/js/luxon.min.js"></script>
-    <script src="./assets/js/Ticker.js"></script>
-    <script src="./assets/js/Villager.js"></script>
-    <script src="./assets/js/script.js"></script>
+    <section id="welcome" class="text-light">Welcome back. A lot has happened since you've been gone</section>
+
+    <section id="current-time" class="text-light">
+      <span id="weather-icon"></span>
+      <span id="latest-tick"></span>
+      <span id="group-position" class="text-muted small"></span>
+    </section>
+
+    <section id="villagers" class="text-light"></section>
+
+  </main>
+  <script src="./assets/js/luxon.min.js"></script>
+  <script src="./assets/js/Ticker.js"></script>
+  <script src="./assets/js/Villager.js"></script>
+  <script src="./assets/js/script.js"></script>
 </body>
+
 </html>
